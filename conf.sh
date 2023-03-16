@@ -2,6 +2,9 @@
 
 set -e
 
+echo Installing dependencies
+apt-get install -y jq
+
 echo Enter your centre wmg, ncc, namrc, mtc, nmis or amrc
 read CENTRE
 
@@ -46,6 +49,7 @@ echo Manually running teleporter...
 app="teleporter.amrc-factoryplus.shef.ac.uk"
 manager="app.kubernetes.io/managed-by"
 SOURCE_KUBECONFIG=cl1$CENTRE.kc
+TARGET_KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 OBJECT_TYPES=cronjobs,sealedsecrets
 
 dryrun="NO"
@@ -91,7 +95,7 @@ maybe () {
 }
 
 echo ">>> Source cluster: $(kc_server "$SOURCE_KUBECONFIG")"
-echo ">>> Target cluster: $(kc_server "fplus-$CENTRE-local")"
+echo ">>> Target cluster: $(kc_server "$TARGET_KUBECONFIG")"
 
 echo ">>> Fetching resources from source cluster..."
 kc_run "$SOURCE_KUBECONFIG" get \
@@ -115,7 +119,7 @@ kc_run "$SOURCE_KUBECONFIG" get \
                 .[$manager] = $app
                 | .[$app + "/txn"] = $txn))
         | . * $rewrite )' \
-| maybe kc_run "fplus-$CENTRE-local" apply -f -
+| maybe kc_run ""$TARGET_KUBECONFIG"" apply -f -
 
 if [ "$dryrun" != "YES" ]
 then
