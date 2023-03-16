@@ -58,7 +58,7 @@ do
     esac
 done
 
-txn="$(uuid)"
+txn="$(uuidgen)"
 echo ">>> Transaction ID for this run: $txn"
 echo ">>> Teleporting namespace fplus-$CENTRE-local"
 
